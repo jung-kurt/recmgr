@@ -16,8 +16,7 @@
 
 /*
 Package recmgr provides a thin wrapper around Google's btree package that
-facilitates the use of multiple indexes to manage a collection of records. This
-is particularly convenient for managing structs that have multiple key fields.
+facilitates the use of multiple indexes to manage a collection of records.
 
 This package operates on pointers to values, typically structs that can be
 indexed in multiple ways.
@@ -89,7 +88,7 @@ The records managed by this package are referenced by pointers so they should
 remain accessible for the duration of the recmgr instance. Notice in the range
 loop shown above that the record address passed to ReplaceOrInsert() points
 into the array that underlies the personList slice, not the address of the
-range expression's second value.
+range expression's ephemeral second value.
 
 Non-key fields in these records can be changed with impunity. However, if key
 fields are modified, it is advised to delete the record before modification and

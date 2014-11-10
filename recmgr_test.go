@@ -16,6 +16,45 @@ func (rec RecType) String() string {
 	return fmt.Sprintf("%s%s%s", rec.name, strings.Repeat(".", 18-len(numStr)-len(rec.name)), numStr)
 }
 
+func Example_basic() {
+	var grp recmgr.GrpType
+	type person struct {
+		name string
+		num  int
+	}
+	personList := []person{
+		{"Athos", 1},
+		{"Porthos", 2},
+		{"Aramis", 3}}
+	idxName := grp.Index(4, func(a, b interface{}) bool {
+		return a.(*person).name < b.(*person).name
+	})
+	idxNum := grp.Index(4, func(a, b interface{}) bool {
+		return a.(*person).num < b.(*person).num
+	})
+	for j := range personList {
+		grp.ReplaceOrInsert(&personList[j])
+	}
+	print := func(recPtr interface{}) bool {
+		p := *recPtr.(*person)
+		fmt.Printf("    %-8s %2d\n", p.name, p.num)
+		return true
+	}
+	fmt.Println("Name order")
+	idxName.Ascend(print)
+	fmt.Println("Number order")
+	idxNum.Ascend(print)
+	// Output:
+	// Name order
+	//     Aramis    3
+	//     Athos     1
+	//     Porthos   2
+	// Number order
+	//     Athos     1
+	//     Porthos   2
+	//     Aramis    3
+}
+
 func Example() {
 	var rm recmgr.GrpType
 	recList := []RecType{
@@ -115,43 +154,4 @@ func Example() {
 	//     true
 	// Has 1770
 	//     false
-}
-
-func Example_basic() {
-	var grp recmgr.GrpType
-	type person struct {
-		name string
-		num  int
-	}
-	personList := []person{
-		{"Athos", 1},
-		{"Porthos", 2},
-		{"Aramis", 3}}
-	idxName := grp.Index(4, func(a, b interface{}) bool {
-		return a.(*person).name < b.(*person).name
-	})
-	idxNum := grp.Index(4, func(a, b interface{}) bool {
-		return a.(*person).num < b.(*person).num
-	})
-	for j := range personList {
-		grp.ReplaceOrInsert(&personList[j])
-	}
-	print := func(recPtr interface{}) bool {
-		p := *recPtr.(*person)
-		fmt.Printf("    %-8s %2d\n", p.name, p.num)
-		return true
-	}
-	fmt.Println("Name order")
-	idxName.Ascend(print)
-	fmt.Println("Number order")
-	idxNum.Ascend(print)
-	// Output:
-	// Name order
-	//     Aramis    3
-	//     Athos     1
-	//     Porthos   2
-	// Number order
-	//     Athos     1
-	//     Porthos   2
-	//     Aramis    3
 }
