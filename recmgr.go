@@ -18,7 +18,8 @@ type IndexType struct {
 }
 
 // GrpType aggregates a number of btree indexes. Adding and deleting records is
-// done with instances of this type and operates on all indexes.
+// done with instances of this type and operates on all indexes. No special
+// initialization is required to use values of this type.
 type GrpType struct {
 	list []IndexType
 }
