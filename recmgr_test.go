@@ -40,16 +40,16 @@ func Example_basic() {
 		fmt.Printf("    %-8s %2d\n", p.name, p.num)
 		return true
 	}
-	fmt.Println("Name order")
+	fmt.Printf("Name order (%d)\n", idxName.Len())
 	idxName.Ascend(print)
-	fmt.Println("Number order")
+	fmt.Printf("Number order (%d)\n", idxNum.Len())
 	idxNum.Ascend(print)
 	// Output:
-	// Name order
+	// Name order (3)
 	//     Aramis    3
 	//     Athos     1
 	//     Porthos   2
-	// Number order
+	// Number order (3)
 	//     Athos     1
 	//     Porthos   2
 	//     Aramis    3
@@ -110,6 +110,8 @@ func Example() {
 	indent("%v", idxNum.Has(&RecType{num: 1756}))
 	fmt.Println("Has 1770")
 	indent("%v", idxNum.Has(&RecType{num: 1770}))
+	fmt.Println("Terminated")
+	idxName.Ascend(func(recPtr interface{}) bool { return false })
 	// Output:
 	// Name order
 	//     Bach..........1685
@@ -154,4 +156,5 @@ func Example() {
 	//     true
 	// Has 1770
 	//     false
+	// Terminated
 }

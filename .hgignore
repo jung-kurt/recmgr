@@ -2,3 +2,4 @@ syntax: glob
 *.sublime*
 *.0
 *.xcf
+coverage
