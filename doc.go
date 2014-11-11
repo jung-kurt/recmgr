@@ -26,9 +26,10 @@ The methods in this package correspond to the methods of the same name in the
 btree package. Because multiple indexes are processed as a group, some methods
 are not supported, for example DeleteMin() and DeleteMax(). Similarly, some
 method semantics are different, for example Delete() returns the number of
-removed keys rather than the deleted item.
+removed keys rather than the deleted item. Additional, variations of the
+traversal methods are available that return a slice of record pointers.
 
-The methods in this package are safe for concurrent goroutine use.
+All methods in this package are safe for concurrent goroutine use.
 
 License
 
@@ -93,9 +94,10 @@ loop shown above that the record address passed to ReplaceOrInsert() points
 into the array that underlies the personList slice, not the address of the
 range expression's ephemeral second value.
 
-If any key field (that is, any struct field that is used in the less function
-passed to Index()) is modified, it is advised to delete the record before
-modification and add it again afterward to keep the underlying btrees
-consistent. Non-key fields in these records can be changed with impunity.
+Within the managed collection of records, if any key field (that is, any struct
+field that is used in the less function passed to Index()) is modified, it is
+advised to delete the record before modification and add it again afterward to
+keep the underlying btrees consistent. Non-key fields can be changed with
+impunity.
 */
 package recmgr

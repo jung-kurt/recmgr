@@ -43,8 +43,8 @@ func (rec btreeRecType) Less(than btree.Item) bool {
 //
 // degree specifies the underlying btree degree.
 //
-// less is a function that should return true if the record pointed to be aPtr
-// sorts less than the record pointed to be bPtr.
+// less is a function that should return true if the record pointed to by aPtr
+// sorts less than the record pointed to by bPtr.
 //
 // This function should be called, once for each index, before adding any
 // records to the manager, that is, before calling ReplaceOrInsert().
@@ -60,7 +60,7 @@ func (grp *GrpType) Index(degree int, less func(aPtr, bPtr interface{}) bool) (i
 // manager. The referenced record is not modified. All fields involved in each
 // of the indexes must be specified. A convenient way to do this is to pass
 // Delete() the result of Get() since only one key has to be fully specified.
-// This method returns zero if recPtr is nil
+// This method returns zero if recPtr is nil.
 func (grp *GrpType) Delete(recPtr interface{}) (count int) {
 	if recPtr != nil {
 		grp.mutex.Lock()
@@ -106,40 +106,71 @@ func (idx IndexType) traverse(list []interface{}, fnc VisitFncType) {
 	}
 }
 
-// Ascend calls fnc for every value in the collection, that is, [first, last],
-// in the order specified by idx. The traversal is terminated if fnc returns
-// false.
-func (idx IndexType) Ascend(fnc VisitFncType) {
-	var list []interface{}
+// AscendList returns a slice of record pointers for every value in the
+// collection in the order associated with idx.
+func (idx IndexType) AscendList() (list []interface{}) {
 	(*idx.mutexPtr).RLock()
 	idx.bt.Ascend(listGen(&list))
 	(*idx.mutexPtr).RUnlock()
-	idx.traverse(list, fnc)
+	return
 }
 
-// AscendLessThan calls fnc for every value in the collection less than the
-// value pointed to by ltPtr, that is, [first, ltPtr), in the order specified
-// by idx. The traversal is terminated if fnc returns false. All key fields
-// needed by idx must be assigned in the value pointed to by ltPtr.
-func (idx IndexType) AscendLessThan(ltPtr interface{}, fnc VisitFncType) {
-	var list []interface{}
+// Ascend calls fnc for every value in the collection, that is, [first, last],
+// in the order associated with idx. The traversal is terminated if fnc returns
+// false.
+func (idx IndexType) Ascend(fnc VisitFncType) {
+	idx.traverse(idx.AscendList(), fnc)
+}
+
+// AscendLessThanList returns a slice with every value in the collection less
+// than the value pointed to by ltPtr, that is, [first, ltPtr), in the order
+// associated with idx. All key fields needed by idx must be assigned in the
+// value pointed to by ltPtr.
+func (idx IndexType) AscendLessThanList(ltPtr interface{}) (list []interface{}) {
 	(*idx.mutexPtr).RLock()
 	idx.bt.AscendLessThan(idx.rec(ltPtr), listGen(&list))
 	(*idx.mutexPtr).RUnlock()
-	idx.traverse(list, fnc)
+	return
+}
+
+// AscendLessThan calls fnc for every value in the collection less than the
+// value pointed to by ltPtr, that is, [first, ltPtr), in the order determined
+// by idx. The traversal is terminated if fnc returns false. All key fields
+// needed by idx must be assigned in the value pointed to by ltPtr.
+func (idx IndexType) AscendLessThan(ltPtr interface{}, fnc VisitFncType) {
+	idx.traverse(idx.AscendLessThanList(ltPtr), fnc)
+}
+
+// AscendGreaterOrEqualList returns a slice with every value in the collection
+// greater than or equal to the value pointed to by gePtr, that is, [gePtr,
+// last], in the order associated with idx. All key fields needed by idx must
+// be assigned in the value pointed to by gePtr.
+func (idx IndexType) AscendGreaterOrEqualList(gePtr interface{}) (list []interface{}) {
+	(*idx.mutexPtr).RLock()
+	idx.bt.AscendGreaterOrEqual(idx.rec(gePtr), listGen(&list))
+	(*idx.mutexPtr).RUnlock()
+	return
 }
 
 // AscendGreaterOrEqual calls fnc for every value in the collection greater
 // than or equal to the value pointed to by gePtr, that is, [gePtr, last], in
-// the order specified by idx. The traversal is terminated if fnc returns
+// the order associated with idx. The traversal is terminated if fnc returns
 // false. All key fields needed by idx must be assigned in the value pointed to
 // by gePtr.
 func (idx IndexType) AscendGreaterOrEqual(gePtr interface{}, fnc VisitFncType) {
-	var list []interface{}
+	idx.traverse(idx.AscendGreaterOrEqualList(gePtr), fnc)
+}
+
+// AscendRangeList returns a slice with every value in the collection greater
+// than or equal to the value pointed to by gePtr and less than the value
+// pointed to by ltPtr, that is, [gePtr, lePtr), in the order specified by idx.
+// All key fields needed by idx must be assigned in the values pointed to by
+// gePtr and ltPtr.
+func (idx IndexType) AscendRangeList(gePtr, ltPtr interface{}) (list []interface{}) {
 	(*idx.mutexPtr).RLock()
-	idx.bt.AscendGreaterOrEqual(idx.rec(gePtr), listGen(&list))
+	idx.bt.AscendRange(idx.rec(gePtr), idx.rec(ltPtr), listGen(&list))
 	(*idx.mutexPtr).RUnlock()
-	idx.traverse(list, fnc)
+	return
 }
 
 // AscendRange calls fnc for every value in the collection greater than or
@@ -148,11 +179,7 @@ func (idx IndexType) AscendGreaterOrEqual(gePtr interface{}, fnc VisitFncType) {
 // is terminated if fnc returns false. All key fields needed by idx must be
 // assigned in the values pointed to by gePtr and ltPtr.
 func (idx IndexType) AscendRange(gePtr, ltPtr interface{}, fnc VisitFncType) {
-	var list []interface{}
-	(*idx.mutexPtr).RLock()
-	idx.bt.AscendRange(idx.rec(gePtr), idx.rec(ltPtr), listGen(&list))
-	(*idx.mutexPtr).RUnlock()
-	idx.traverse(list, fnc)
+	idx.traverse(idx.AscendRangeList(gePtr, ltPtr), fnc)
 }
 
 // Get retrieves the value associated with the key specified by keyPtr. All key
