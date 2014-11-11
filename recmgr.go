@@ -13,8 +13,8 @@ type lessFncType func(a, b interface{}) bool
 type VisitFncType func(recPtr interface{}) bool
 
 // IndexType associates a record collection with a record comparison function.
-// An instance of this type is used to access records in index order. The
-// methods of values of this type are safe for concurrent goroutine use.
+// A value of this type is used to access records in index order. Its methods
+// are safe for concurrent goroutine use.
 type IndexType struct {
 	bt       *btree.BTree
 	less     lessFncType
