@@ -2,6 +2,7 @@ package recmgr
 
 import (
 	"github.com/google/btree"
+	"sync"
 )
 
 type lessFncType func(a, b interface{}) bool
@@ -12,17 +13,21 @@ type lessFncType func(a, b interface{}) bool
 type VisitFncType func(recPtr interface{}) bool
 
 // IndexType associates a record collection with a record comparison function.
-// An instance of this type is used to access records in index order.
+// An instance of this type is used to access records in index order. The
+// methods of values of this type are safe for concurrent goroutine use.
 type IndexType struct {
-	bt   *btree.BTree
-	less lessFncType
+	bt       *btree.BTree
+	less     lessFncType
+	mutexPtr *sync.RWMutex
 }
 
 // GrpType aggregates a number of btree indexes. Adding and deleting records is
-// done with instances of this type and operates on all indexes. No special
-// initialization is required to use values of this type.
+// done with instances of this type and operates on all indexes. Values of this
+// type require no special initialization before use. Its methods are safe for
+// concurrent goroutine use.
 type GrpType struct {
-	list []IndexType
+	list  []IndexType
+	mutex sync.RWMutex
 }
 
 type btreeRecType struct {
@@ -42,10 +47,12 @@ func (rec btreeRecType) Less(than btree.Item) bool {
 // sorts less than the record pointed to be bPtr.
 //
 // This function should be called, once for each index, before adding any
-// records to the manager, that is, before calling ReplaceOrInsert()
-func (rm *GrpType) Index(degree int, less func(aPtr, bPtr interface{}) bool) (idx IndexType) {
-	idx = IndexType{bt: btree.New(degree), less: less}
-	rm.list = append(rm.list, idx)
+// records to the manager, that is, before calling ReplaceOrInsert().
+func (grp *GrpType) Index(degree int, less func(aPtr, bPtr interface{}) bool) (idx IndexType) {
+	grp.mutex.Lock()
+	idx = IndexType{bt: btree.New(degree), less: less, mutexPtr: &grp.mutex}
+	grp.list = append(grp.list, idx)
+	grp.mutex.Unlock()
 	return
 }
 
@@ -54,13 +61,15 @@ func (rm *GrpType) Index(degree int, less func(aPtr, bPtr interface{}) bool) (id
 // of the indexes must be specified. A convenient way to do this is to pass
 // Delete() the result of Get() since only one key has to be fully specified.
 // This method returns zero if recPtr is nil
-func (rm *GrpType) Delete(recPtr interface{}) (count int) {
+func (grp *GrpType) Delete(recPtr interface{}) (count int) {
 	if recPtr != nil {
-		for _, index := range rm.list {
+		grp.mutex.Lock()
+		for _, index := range grp.list {
 			if nil != index.bt.Delete(btreeRecType{less: index.less, recPtr: recPtr}) {
 				count++
 			}
 		}
+		grp.mutex.Unlock()
 	}
 	return
 }
@@ -68,11 +77,13 @@ func (rm *GrpType) Delete(recPtr interface{}) (count int) {
 // ReplaceOrInsert inserts, or replaces if already present, a record reference
 // to each of the underlying btree indexes. No action is taken if recPtr is
 // nil.
-func (rm *GrpType) ReplaceOrInsert(recPtr interface{}) {
+func (grp *GrpType) ReplaceOrInsert(recPtr interface{}) {
 	if recPtr != nil {
-		for _, index := range rm.list {
+		grp.mutex.Lock()
+		for _, index := range grp.list {
 			index.bt.ReplaceOrInsert(btreeRecType{less: index.less, recPtr: recPtr})
 		}
+		grp.mutex.Unlock()
 	}
 }
 
@@ -80,9 +91,18 @@ func (idx IndexType) rec(recPtr interface{}) btreeRecType {
 	return btreeRecType{less: idx.less, recPtr: recPtr}
 }
 
-func visitWrap(fnc VisitFncType) func(item btree.Item) bool {
+func listGen(listPtr *[]interface{}) func(item btree.Item) bool {
 	return func(item btree.Item) bool {
-		return fnc(item.(btreeRecType).recPtr)
+		*listPtr = append(*listPtr, item.(btreeRecType).recPtr)
+		return true
+	}
+}
+
+func (idx IndexType) traverse(list []interface{}, fnc VisitFncType) {
+	for _, recPtr := range list {
+		if !fnc(recPtr) {
+			return
+		}
 	}
 }
 
@@ -90,7 +110,11 @@ func visitWrap(fnc VisitFncType) func(item btree.Item) bool {
 // in the order specified by idx. The traversal is terminated if fnc returns
 // false.
 func (idx IndexType) Ascend(fnc VisitFncType) {
-	idx.bt.Ascend(visitWrap(fnc))
+	var list []interface{}
+	(*idx.mutexPtr).RLock()
+	idx.bt.Ascend(listGen(&list))
+	(*idx.mutexPtr).RUnlock()
+	idx.traverse(list, fnc)
 }
 
 // AscendLessThan calls fnc for every value in the collection less than the
@@ -98,7 +122,11 @@ func (idx IndexType) Ascend(fnc VisitFncType) {
 // by idx. The traversal is terminated if fnc returns false. All key fields
 // needed by idx must be assigned in the value pointed to by ltPtr.
 func (idx IndexType) AscendLessThan(ltPtr interface{}, fnc VisitFncType) {
-	idx.bt.AscendLessThan(idx.rec(ltPtr), visitWrap(fnc))
+	var list []interface{}
+	(*idx.mutexPtr).RLock()
+	idx.bt.AscendLessThan(idx.rec(ltPtr), listGen(&list))
+	(*idx.mutexPtr).RUnlock()
+	idx.traverse(list, fnc)
 }
 
 // AscendGreaterOrEqual calls fnc for every value in the collection greater
@@ -107,7 +135,11 @@ func (idx IndexType) AscendLessThan(ltPtr interface{}, fnc VisitFncType) {
 // false. All key fields needed by idx must be assigned in the value pointed to
 // by gePtr.
 func (idx IndexType) AscendGreaterOrEqual(gePtr interface{}, fnc VisitFncType) {
-	idx.bt.AscendGreaterOrEqual(idx.rec(gePtr), visitWrap(fnc))
+	var list []interface{}
+	(*idx.mutexPtr).RLock()
+	idx.bt.AscendGreaterOrEqual(idx.rec(gePtr), listGen(&list))
+	(*idx.mutexPtr).RUnlock()
+	idx.traverse(list, fnc)
 }
 
 // AscendRange calls fnc for every value in the collection greater than or
@@ -116,14 +148,20 @@ func (idx IndexType) AscendGreaterOrEqual(gePtr interface{}, fnc VisitFncType) {
 // is terminated if fnc returns false. All key fields needed by idx must be
 // assigned in the values pointed to by gePtr and ltPtr.
 func (idx IndexType) AscendRange(gePtr, ltPtr interface{}, fnc VisitFncType) {
-	idx.bt.AscendRange(idx.rec(gePtr), idx.rec(ltPtr), visitWrap(fnc))
+	var list []interface{}
+	(*idx.mutexPtr).RLock()
+	idx.bt.AscendRange(idx.rec(gePtr), idx.rec(ltPtr), listGen(&list))
+	(*idx.mutexPtr).RUnlock()
+	idx.traverse(list, fnc)
 }
 
 // Get retrieves the value associated with the key specified by keyPtr. All key
 // fields needed by idx must be assigned in the value pointed to by keyPtr. If
 // the value cannot be located, nil is returned.
 func (idx IndexType) Get(keyPtr interface{}) (recPtr interface{}) {
+	(*idx.mutexPtr).RLock()
 	item := idx.bt.Get(idx.rec(keyPtr))
+	(*idx.mutexPtr).RUnlock()
 	if item != nil {
 		recPtr = item.(btreeRecType).recPtr
 	}
@@ -133,11 +171,17 @@ func (idx IndexType) Get(keyPtr interface{}) (recPtr interface{}) {
 // Has returns true if the value associated with the key specified by keyPtr is
 // present, false otherwise. All key fields needed by idx must be assigned in
 // the value pointed to by keyPtr.
-func (idx IndexType) Has(keyPtr interface{}) bool {
-	return idx.bt.Has(idx.rec(keyPtr))
+func (idx IndexType) Has(keyPtr interface{}) (ok bool) {
+	(*idx.mutexPtr).RLock()
+	ok = idx.bt.Has(idx.rec(keyPtr))
+	(*idx.mutexPtr).RUnlock()
+	return
 }
 
 // Len returns the number of items in the btree associated with idx.
-func (idx IndexType) Len() int {
-	return idx.bt.Len()
+func (idx IndexType) Len() (count int) {
+	(*idx.mutexPtr).RLock()
+	count = idx.bt.Len()
+	(*idx.mutexPtr).RUnlock()
+	return
 }
