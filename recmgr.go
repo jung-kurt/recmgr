@@ -7,7 +7,8 @@ import (
 type lessFncType func(a, b interface{}) bool
 
 // VisitFncType defines the application function that will be called by the
-// record manager library when traversing a record collection.
+// record manager library when traversing a record collection. The boolean
+// false value is returned to terminate the traversal.
 type VisitFncType func(recPtr interface{}) bool
 
 // IndexType associates a record collection with a record comparison function.

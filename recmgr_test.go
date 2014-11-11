@@ -36,7 +36,7 @@ func Example_basic() {
 		grp.ReplaceOrInsert(&personList[j])
 	}
 	print := func(recPtr interface{}) bool {
-		p := *recPtr.(*person)
+		p := recPtr.(*person)
 		fmt.Printf("    %-8s %2d\n", p.name, p.num)
 		return true
 	}
