@@ -26,7 +26,7 @@ The methods in this package correspond to the methods of the same name in the
 btree package. Because multiple indexes are processed as a group, some methods
 are not supported, for example DeleteMin() and DeleteMax(). Similarly, some
 method semantics are different, for example Delete() returns the number of
-removed keys rather than the deleted item. Additional, variations of the
+removed keys rather than the deleted item. Additionally, variations of the
 traversal methods are available that return a slice of record pointers.
 
 All methods in this package are safe for concurrent goroutine use.
