@@ -1,7 +1,7 @@
 package recmgr
 
 import (
-	"github.com/google/btree"
+	"github.com/jung-kurt/recmgr"
 	"sync"
 )
 

@@ -1,8 +1,8 @@
 package recmgr_test
 
 import (
-	"code.google.com/p/recmgr"
 	"fmt"
+	"github.com/jung-kurt/recmgr"
 	"strings"
 )
 

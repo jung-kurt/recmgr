@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Kurt Jung (Gmail: kurt.w.jung)
+ * Copyright (c) 2015 Kurt Jung (Gmail: kurt.w.jung)
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -39,11 +39,11 @@ Installation
 
 To install the package on your system, run
 
-	go get code.google.com/p/recmgr
+	go get github.com/jung-kurt/recmgr
 
 Later, to receive updates, run
 
-	go get -u code.google.com/p/recmgr
+	go get -u github.com/jung-kurt/recmgr
 
 Quick Start
 
