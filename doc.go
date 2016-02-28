@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kurt Jung (Gmail: kurt.w.jung)
+ * Copyright (c) 2015-2016 Kurt Jung (Gmail: kurt.w.jung)
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,9 +15,9 @@
  */
 
 /*
-Package recmgr provides a thin, goroutine-safe wrapper around Google's btree
-package. It facilitates the use of multiple indexes to manage an in-memory
-collection of records.
+Package recmgr provides a thin, goroutine-safe wrapper around
+Google's btree package. It facilitates the use of multiple indexes to manage an
+in-memory collection of records.
 
 This package operates on pointers to values, typically structs that can be
 indexed in multiple ways.
@@ -31,17 +31,9 @@ traversal methods are available that return a slice of record pointers.
 
 All methods in this package are safe for concurrent goroutine use.
 
-License
-
-recmgr is copyrighted by Kurt Jung and is released under the MIT License.
-
 Installation
 
-To install the package on your system, run
-
-	go get github.com/jung-kurt/recmgr
-
-Later, to receive updates, run
+To install and later update the package on your system, run
 
 	go get -u github.com/jung-kurt/recmgr
 
@@ -99,5 +91,10 @@ field that is used in the less function passed to Index()) is modified, it is
 advised to delete the record before modification and add it again afterward to
 keep the underlying btrees consistent. Non-key fields can be changed with
 impunity.
+
+License
+
+recmgr is copyrighted by Kurt Jung and is released under the MIT License.
+
 */
 package recmgr

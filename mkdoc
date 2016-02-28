@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# https://github.com/jimmyfrasche/autoreadme
+autoreadme -f -template README.md.template
+# Improve the appearance of the markdown document with features unavailable in godoc
+ tr '\n' '\v' < README.md | sed \
+  -e 's/\v##\([^\v]*\)/\v##\1\v\v/g' \
+  -e 's/\v• /* /g' \
+  -e 's|\(Google'"'"'s btree package\)|[\1](https://github.com/google/btree)|' \
+  -e 's|\(DeleteMin()\)|[\1](https://godoc.org/github.com/google/btree#BTree.DeleteMin)|' \
+  -e 's|\(DeleteMax()\)|[\1](https://godoc.org/github.com/google/btree#BTree.DeleteMax)|' \
+  -e 's|\(Delete()\)|[\1](https://godoc.org/github.com/jung-kurt/recmgr#GrpType.Delete)|' \
+  -e 's|\(ReplaceOrInsert()\)|[\1](https://godoc.org/github.com/jung-kurt/recmgr#GrpType.ReplaceOrInsert)|' \
+  -e 's|\(Index()\)|[\1](https://godoc.org/github.com/jung-kurt/recmgr#GrpType.Index)|' \
+  | tr '\v' '\n' > _0 
+mv _0 README.md
