@@ -75,8 +75,8 @@ func (grp *GrpType) Delete(recPtr interface{}) (count int) {
 }
 
 // Has returns the number of indexes that contain a key for the record
-// specified by recPtr. Each key field used in an index must be assigned. Zero
-// is returned if recPtr is nil.
+// specified by recPtr. Each key field used in every index must be assigned.
+// Zero is returned if recPtr is nil.
 func (grp *GrpType) Has(recPtr interface{}) (count int) {
 	if recPtr != nil {
 		grp.mutex.Lock()
