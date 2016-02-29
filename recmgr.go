@@ -74,6 +74,22 @@ func (grp *GrpType) Delete(recPtr interface{}) (count int) {
 	return
 }
 
+// Has returns the number of indexes that contain a key for the record
+// specified by recPtr. Each key field used in an index must be assigned. Zero
+// is returned if recPtr is nil.
+func (grp *GrpType) Has(recPtr interface{}) (count int) {
+	if recPtr != nil {
+		grp.mutex.Lock()
+		for _, index := range grp.list {
+			if index.bt.Has(btreeRecType{less: index.less, recPtr: recPtr}) {
+				count++
+			}
+		}
+		grp.mutex.Unlock()
+	}
+	return
+}
+
 // ReplaceOrInsert inserts, or replaces if already present, a record reference
 // to each of the underlying btree indexes. No action is taken if recPtr is
 // nil.

@@ -110,6 +110,8 @@ func Example() {
 	indent("%v", idxNum.Has(&RecType{num: 1756}))
 	fmt.Println("Has 1770")
 	indent("%v", idxNum.Has(&RecType{num: 1770}))
+	fmt.Println("Index count of \"Mozart\"")
+	indent("%d", rm.Has(idxName.Get(&RecType{name: "Mozart"})))
 	fmt.Println("Terminated")
 	idxName.Ascend(func(recPtr interface{}) bool { return false })
 	// Output:
@@ -156,5 +158,7 @@ func Example() {
 	//     true
 	// Has 1770
 	//     false
+	// Index count of "Mozart"
+	//     2
 	// Terminated
 }

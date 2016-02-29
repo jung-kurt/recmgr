@@ -1,6 +1,6 @@
 ![recmgr](image/logo.gif?raw=true "recmgr")
 
-Package recmgr provides a thin, goroutine-safe wrapper around
+Package recmgr provides a thin, multi-keyed, goroutine-safe wrapper around
 [Google's btree package](https://github.com/google/btree). It facilitates the use of multiple indexes to manage an
 in-memory collection of records.
 
@@ -15,6 +15,8 @@ removed keys rather than the deleted item. Additionally, variations of the
 traversal methods are available that return a slice of record pointers.
 
 All methods in this package are safe for concurrent goroutine use.
+
+Test coverage is 100%.
 
 ##Installation
 
