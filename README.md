@@ -1,5 +1,8 @@
 ![recmgr](image/logo.gif?raw=true "recmgr")
 
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/jung-kurt/recmgr/master/LICENSE)
+[![GoDoc](https://godoc.org/github.com/jung-kurt/recmgr?status.svg)](https://godoc.org/github.com/jung-kurt/recmgr)
+
 Package recmgr provides a thin, multi-keyed, goroutine-safe wrapper around
 [Google's btree package](https://github.com/google/btree). It facilitates the use of multiple indexes to manage an
 in-memory collection of records.

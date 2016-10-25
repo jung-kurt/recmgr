@@ -1,3 +1,6 @@
 ![recmgr](image/logo.gif?raw=true "recmgr")
 
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/jung-kurt/recmgr/master/LICENSE)
+[![GoDoc](https://godoc.org/github.com/jung-kurt/recmgr?status.svg)](https://godoc.org/github.com/jung-kurt/recmgr)
+
 {{.Doc}}
